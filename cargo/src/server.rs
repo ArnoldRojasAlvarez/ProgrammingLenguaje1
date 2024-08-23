@@ -39,9 +39,63 @@ pub struct SeatingStructure {
 
 impl SeatingStructure {
     pub fn new() -> Self {
-        SeatingStructure {
-            categories: vec![], // Inicializa con categorías vacías
-        }
+        // Crear la estructura de asientos con datos predefinidos
+        let categories = vec![
+            Category {
+                name: "VIP".to_string(),
+                zones: vec![
+                    Zone {
+                        name: "Zona A".to_string(),
+                        rows: vec![
+                            Row {
+                                number: 1,
+                                seats: vec![
+                                    Seat { status: SeatStatus::Free },
+                                    Seat { status: SeatStatus::Free },
+                                    Seat { status: SeatStatus::Free },
+                                ],
+                            },
+                            Row {
+                                number: 2,
+                                seats: vec![
+                                    Seat { status: SeatStatus::Free },
+                                    Seat { status: SeatStatus::Free },
+                                    Seat { status: SeatStatus::Free },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+            Category {
+                name: "General".to_string(),
+                zones: vec![
+                    Zone {
+                        name: "Zona B".to_string(),
+                        rows: vec![
+                            Row {
+                                number: 1,
+                                seats: vec![
+                                    Seat { status: SeatStatus::Free },
+                                    Seat { status: SeatStatus::Free },
+                                    Seat { status: SeatStatus::Free },
+                                ],
+                            },
+                            Row {
+                                number: 2,
+                                seats: vec![
+                                    Seat { status: SeatStatus::Free },
+                                    Seat { status: SeatStatus::Free },
+                                    Seat { status: SeatStatus::Free },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ];
+
+        SeatingStructure { categories }
     }
 
     pub fn find_free_seats(&self, category_name: &str, seat_count: u32) -> Vec<(String, u32, u32)> {
