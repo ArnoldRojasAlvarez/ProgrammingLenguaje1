@@ -1,0 +1,14 @@
+[package]
+name = "event_ticketing"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "server"
+path = "src/server/handler.rs"
+
+[[bin]]
+name = "tester"
+path = "src/client/tester.rs"
+
+[dependencies]
