@@ -8,10 +8,10 @@ pub fn run_client() {
         Ok(mut stream) => {
             // Datos quemados para simular múltiples solicitudes
             let requests = vec![
-                "find VIP 3",    // Solicita 3 asientos en la categoría VIP
-                "find General 2", // Solicita 2 asientos en la categoría General
-                "reserve VIP ZonaA 1 3", // Reserva asientos específicos en VIP
-                "purchase VIP ZonaA 1 3", // Compra asientos específicos en VIP
+                "find VIP 6",    // Solicita 3 asientos en la categoría VIP
+                //"find General 2", // Solicita 2 asientos en la categoría General
+                //"find VIP 2",    // Solicita 2 asientos en la categoría VIP
+                //"find VIP 4",    // Solicita 4 asientos en la categoría VIP
             ];
 
             for request in requests {
@@ -26,31 +26,57 @@ pub fn run_client() {
                     Ok(size) => {
                         let response = String::from_utf8_lossy(&buffer[..size]);
                         println!("Server response: {}", response);
-
                         // Simula la aceptación automática de las reservas encontradas
                         if request.starts_with("find") {
                             if response.contains("No free seats found") {
                                 println!("No seats found. Skipping reservation.");
                             } else {
-                                println!("Seats found. Automatically reserving...");
-                                let reserve_request = "reserve VIP Zona A 1 1 2 3"; // Ejemplo de reserva quemada
-                                if let Err(e) = stream.write(reserve_request.as_bytes()) {
-                                    eprintln!("Failed to write to server: {}", e);
-                                    break;
+                                //consultar si desea o no reservar
+                                println!("Do you want to reserve the seats? (y/n)");
+                                let mut input = "y".to_string();
+                                if input.trim() != "y" {
+                                    println!("Skipping reservation.");
+                                    continue;
+                                } else {
+                                    println!("Reserving seats...");
+                                    println!("Seats found. Automatically reserving...");
+                                    println!("Reserving seats: {}", response);
+                                    //sleep
+                                    std::thread::sleep(std::time::Duration::from_secs(10));
+                                    // Parseamos la respuesta del servidor para reservar automáticamente los asientos recomendados
+                                    let reserve_request: Vec<String> = response
+                                        .lines()
+                                        .map(|line| {
+                                            let parts: Vec<&str> = line.split(", ").collect();
+                                            let zone = parts.get(0).and_then(|s| s.split("Zone: ").nth(1)).unwrap_or("");
+                                            let row = parts.get(1).and_then(|s| s.split("Row: ").nth(1)).unwrap_or("");
+                                            let seat = parts.get(2).and_then(|s| s.split("Seat: ").nth(1)).unwrap_or("");
+                                            format!("reserve {} {} {} {}", zone, row, seat, seat) // Ejemplo: "reserve VIP ZonaA 1 1"
+                                        })
+                                        .collect(); // Ahora es Vec<String>
+
+                                    for reserve in reserve_request {
+                                        if let Err(e) = stream.write(reserve.as_bytes()) {
+                                            eprintln!("Failed to write to server: {}", e);
+                                            break;
+                                        }
+
+                                        // Lee la respuesta de la reserva
+                                        let mut reserve_buffer = [0; 512];
+                                        match stream.read(&mut reserve_buffer) {
+                                            Ok(reserve_size) => {
+                                                let reserve_response = String::from_utf8_lossy(&reserve_buffer[..reserve_size]);
+                                                println!("Server response to reservation: {}", reserve_response);
+                                            }
+                                            Err(e) => {
+                                                eprintln!("Failed to read from server: {}", e);
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
 
-                                // Lee la respuesta de la reserva
-                                let mut reserve_buffer = [0; 512];
-                                match stream.read(&mut reserve_buffer) {
-                                    Ok(reserve_size) => {
-                                        let reserve_response = String::from_utf8_lossy(&reserve_buffer[..reserve_size]);
-                                        println!("Server response to reservation: {}", reserve_response);
-                                    }
-                                    Err(e) => {
-                                        eprintln!("Failed to read from server: {}", e);
-                                        break;
-                                    }
-                                }
+
                             }
                         }
                     }

@@ -13,12 +13,20 @@ pub enum SeatStatus {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Seat {
     pub status: SeatStatus,
+    pub vision_percentage: u8,
+    pub number: u32,
 }
 
 #[derive(Clone, Debug)]
 pub struct Row {
     pub number: u32,
     pub seats: Vec<Seat>,
+}
+//cantidad de asientos libres en una fila
+impl Row {
+    pub fn free_seats(&self) -> u32 {
+        self.seats.iter().filter(|s| s.status == SeatStatus::Free).count() as u32
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -33,13 +41,14 @@ pub struct Category {
     pub zones: Vec<Zone>,
 }
 
+#[derive(Debug)]
 pub struct SeatingStructure {
     pub categories: Vec<Category>,
 }
 
 impl SeatingStructure {
     pub fn new() -> Self {
-        // Crear la estructura de asientos con datos más detallados
+        // Crear la estructura de asientos con datos más detallados y porcentajes de visión variados
         let categories = vec![
             Category {
                 name: "VIP".to_string(),
@@ -49,7 +58,11 @@ impl SeatingStructure {
                         rows: (1..=5).map(|row_number| {
                             Row {
                                 number: row_number,
-                                seats: (1..=10).map(|_| Seat { status: SeatStatus::Free }).collect(),
+                                seats: (1..=5).map(|i| Seat {
+                                    number: i,
+                                    status: SeatStatus::Free,
+                                    vision_percentage : if i == 1 { 100 } else { 50 }
+                                }).collect(),
                             }
                         }).collect(),
                     },
@@ -58,7 +71,24 @@ impl SeatingStructure {
                         rows: (1..=5).map(|row_number| {
                             Row {
                                 number: row_number,
-                                seats: (1..=10).map(|_| Seat { status: SeatStatus::Free }).collect(),
+                                seats: (1..=5).map(|i| Seat {
+                                    number: i,
+                                    status: SeatStatus::Free,
+                                    vision_percentage: if i % 3 == 0 { 100 } else { 50 }, // Ejemplo de asignación de visión
+                                }).collect(),
+                            }
+                        }).collect(),
+                    },
+                    Zone {
+                        name: "ZonaC".to_string(),
+                        rows: (1..=5).map(|row_number| {
+                            Row {
+                                number: row_number,
+                                seats: (1..=5).map(|i| Seat {
+                                    number: i,
+                                    status: SeatStatus::Reserved,
+                                    vision_percentage: if i % 4 == 0 { 100 } else { 25 }, // Ejemplo de asignación de visión
+                                }).collect(),
                             }
                         }).collect(),
                     },
@@ -69,19 +99,40 @@ impl SeatingStructure {
                 zones: vec![
                     Zone {
                         name: "ZonaC".to_string(),
-                        rows: (1..=10).map(|row_number| {
+                        rows: (1..=5).map(|row_number| {
                             Row {
                                 number: row_number,
-                                seats: (1..=20).map(|_| Seat { status: SeatStatus::Free }).collect(),
+                                seats: (1..=5).map(|i| Seat {
+                                    number: i,
+                                    status: SeatStatus::Free,
+                                    vision_percentage: if i % 4 == 0 { 100 } else { 50 }, // Ejemplo de asignación de visión
+                                }).collect(),
                             }
                         }).collect(),
                     },
                     Zone {
                         name: "ZonaD".to_string(),
-                        rows: (1..=10).map(|row_number| {
+                        rows: (1..=5).map(|row_number| {
                             Row {
                                 number: row_number,
-                                seats: (1..=20).map(|_| Seat { status: SeatStatus::Free }).collect(),
+                                seats: (1..=5).map(|i| Seat {
+                                    number: i,
+                                    status: SeatStatus::Free,
+                                    vision_percentage: if i % 5 == 0 { 100 } else { 25 }, // Ejemplo de asignación de visión
+                                }).collect(),
+                            }
+                        }).collect(),
+                    },
+                    Zone {
+                        name: "ZonaE".to_string(),
+                        rows: (1..=5).map(|row_number| {
+                            Row {
+                                number: row_number,
+                                seats: (1..=5).map(|i| Seat {
+                                    number: i,
+                                    status: SeatStatus::Free,
+                                    vision_percentage: if i % 6 == 0 { 100 } else { 75 }, // Ejemplo de asignación de visión
+                                }).collect(),
                             }
                         }).collect(),
                     },
@@ -92,87 +143,51 @@ impl SeatingStructure {
         SeatingStructure { categories }
     }
 
-    pub fn find_free_seats(&self, category_name: &str, seat_count: u32) -> Vec<(String, u32, u32)> {
-        let mut seats = Vec::new();
-        for category in &self.categories {
-            if category.name == category_name {
-                for zone in &category.zones {
-                    for row in &zone.rows {
-                        let free_seat_indices: Vec<u32> = row.seats.iter()
-                            .enumerate()
-                            .filter(|(_, s)| s.status == SeatStatus::Free)
-                            .map(|(i, _)| i as u32 + 1)
-                            .collect();
+    pub fn find_free_seats(&self, category_name: &str, seat_count: u32) -> Vec<String> {
+        let mut result = vec![];
+        let mut allOptions = vec![];
+        let category = self.categories.iter().find(|c| c.name == category_name);
+        if let Some(category) = category {
+            for zone in &category.zones {
+                let mut seats = vec![];
+                for row in &zone.rows {
+                    let mut free_seats = 0;
+                    let mut free_seats_str = vec![];
+                    let mut zone_name = zone.name.clone();
+                    let mut row_number = row.number.to_string();
+                    //hacer una libreria con key value para guardar los asientos
 
-                        if free_seat_indices.len() >= seat_count as usize {
-                            let start_seat = free_seat_indices[0];
-                            let end_seat = (start_seat + seat_count - 1).min(*free_seat_indices.last().unwrap());
-                            let seats_in_row: Vec<(String, u32, u32)> = (start_seat..=end_seat)
-                                .map(|i| (zone.name.clone(), row.number, i))
-                                .collect();
-                            seats.extend(seats_in_row);
-                            return seats;
+                    &seats.push("Zone: ".to_string() + &zone_name);
+                    &seats.join(", ");
+                    &seats.push("Row: ".to_string() + &row_number);
+                    &seats.join(", ");
+                    for seat in &row.seats {
+                        if seat.status == SeatStatus::Free {
+                            free_seats += 1;
+                            free_seats_str.push(format!("Seat: {}", seat.number));
+                        }
+                        if free_seats >= seat_count {
+                            &seats.push(free_seats_str.join(", "));
+                            allOptions.push(seats.join(", "));
+                            break;
                         }
                     }
                 }
             }
         }
-        seats
+
+        if allOptions.is_empty() {
+            allOptions.push("No free seats found".to_string());
+        }
+        for r in &allOptions {
+            //imprimir la zona y fila de los asientos encontrados
+            println!("{}", r);
+        }
+        result
     }
 
-    pub fn reserve_seats(&mut self, category_name: &str, seats: Vec<(String, u32, u32)>) -> bool {
-        let mut reserved = false;
-        for category in &mut self.categories {
-            if category.name == category_name {
-                for zone in &mut category.zones {
-                    for row in &mut zone.rows {
-                        let mut seats_to_reserve = Vec::new();
-                        for (zone_name, row_num, seat_num) in &seats {
-                            if *zone_name == zone.name && *row_num == row.number {
-                                if let Some(index) = row.seats.iter().position(|s| s.status == SeatStatus::Free) {
-                                    if *seat_num == index as u32 + 1 {
-                                        seats_to_reserve.push(index);
-                                    }
-                                }
-                            }
-                        }
-                        for index in seats_to_reserve {
-                            row.seats[index].status = SeatStatus::Reserved;
-                            reserved = true;
-                        }
-                    }
-                }
-            }
-        }
-        reserved
-    }
 
-    pub fn purchase_seats(&mut self, category_name: &str, seats: Vec<(String, u32, u32)>) -> bool {
-        let mut purchased = false;
-        for category in &mut self.categories {
-            if category.name == category_name {
-                for zone in &mut category.zones {
-                    for row in &mut zone.rows {
-                        let mut seats_to_purchase = Vec::new();
-                        for (zone_name, row_num, seat_num) in &seats {
-                            if *zone_name == zone.name && *row_num == row.number {
-                                if let Some(index) = row.seats.iter().position(|s| s.status == SeatStatus::Reserved) {
-                                    if *seat_num == index as u32 + 1 {
-                                        seats_to_purchase.push(index);
-                                    }
-                                }
-                            }
-                        }
-                        for index in seats_to_purchase {
-                            row.seats[index].status = SeatStatus::Purchased;
-                            purchased = true;
-                        }
-                    }
-                }
-            }
-        }
-        purchased
-    }
+
 }
 
 pub fn start_server() {
@@ -196,64 +211,61 @@ pub fn start_server() {
 
 fn handle_client(mut stream: TcpStream, seating_structure: Arc<Mutex<SeatingStructure>>) {
     let mut buffer = [0; 512];
-
-    // Bucle para mantener la conexión abierta mientras el cliente envíe solicitudes
     loop {
         match stream.read(&mut buffer) {
             Ok(size) => {
-                if size == 0 {
-                    // Si no hay más datos, significa que el cliente ha cerrado la conexión
-                    break;
-                }
-
                 let request = String::from_utf8_lossy(&buffer[..size]);
-                let parts: Vec<&str> = request.trim().split_whitespace().collect();
-                if parts.len() > 1 {
-                    let command = parts[0];
-                    let category_name = parts[1];
-                    let seat_count: u32 = parts.get(2).and_then(|&s| s.parse().ok()).unwrap_or(0);
+                println!("Received request: {}", request);
+                println!("{:?}", request);
+                let response = if request.starts_with("find") {
+                    let parts: Vec<&str> = request.split_whitespace().collect();
+                    if parts.len() == 3 {
+                        let category = parts[1];
+                        let seat_count = parts[2].parse::<u32>().unwrap_or(0);
+                        let mut seating_structure = seating_structure.lock().unwrap();
+                        seating_structure.find_free_seats(category, seat_count);
+                        println!("{} {}", category, seat_count);
+                        "Seats found".to_string()
 
-                    let mut seating = seating_structure.lock().unwrap();
-
-                    let response = match command {
-                        "find" => {
-                            let seats = seating.find_free_seats(category_name, seat_count);
-                            if seats.is_empty() {
-                                "No free seats found".to_string()
-                            } else {
-                                seats.iter()
-                                    .map(|(zone, row, seat)| format!("Zone: {}, Row: {}, Seat: {}", zone, row, seat))
-                                    .collect::<Vec<_>>()
-                                    .join("\n")
-                            }
-                        }
-                        "reserve" => {
-                            let seats = (2..parts.len())
-                                .map(|i| (parts[i].to_string(), 1, i as u32 + 1)) // Simplificado para el ejemplo
-                                .collect();
-                            if seating.reserve_seats(category_name, seats) {
-                                "Seats reserved successfully".to_string()
-                            } else {
-                                "Failed to reserve seats".to_string()
-                            }
-                        }
-                        "purchase" => {
-                            let seats = (2..parts.len())
-                                .map(|i| (parts[i].to_string(), 1, i as u32 + 1)) // Simplificado para el ejemplo
-                                .collect();
-                            if seating.purchase_seats(category_name, seats) {
-                                "Seats purchased successfully".to_string()
-                            } else {
-                                "Failed to purchase seats".to_string()
-                            }
-                        }
-                        _ => "Unknown command".to_string(),
-                    };
-
-                    if let Err(e) = stream.write(response.as_bytes()) {
-                        eprintln!("Failed to write to stream: {}", e);
-                        break;
+                    } else {
+                        "Invalid request. Expected: find <category> <seat_count>".to_string()
                     }
+                } else if request.starts_with("reserve") {
+                    let parts: Vec<&str> = request.split_whitespace().collect();
+                    if parts.len() == 5 {
+                        let zone = parts[1];
+                        let row = parts[2];
+                        let seat = parts[3];
+                        let seat_count = parts[4].parse::<u32>().unwrap_or(0);
+                        //cambiar el estado de los asientos a reservado
+                        for i in 0..seat_count {
+                            let mut seating_structure = seating_structure.lock().unwrap();
+                            let category = seating_structure.categories.iter_mut().find(|c| c.name == zone);
+                            if let Some(category) = category {
+                                let zone = category.zones.iter_mut().find(|z| z.name == row);
+                                if let Some(zone) = zone {
+                                    let row = zone.rows.iter_mut().find(|r| r.number == seat.parse::<u32>().unwrap_or(0));
+                                    if let Some(row) = row {
+                                        let seat = row.seats.iter_mut().find(|s| s.status == SeatStatus::Free);
+                                        if let Some(seat) = seat {
+                                            seat.status = SeatStatus::Reserved;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        println!("Reserving seats: {} {} {} {}", zone, row, seat, seat_count);
+                        "Seats reserved".to_string()
+                    } else {
+                        "Invalid request. Expected: reserve <zone> <row> <seat> <seat_count>".to_string()
+                    }
+                } else {
+                    "Invalid request".to_string()
+                };
+
+                if let Err(e) = stream.write(response.as_bytes()) {
+                    eprintln!("Failed to write to stream: {}", e);
+                    break;
                 }
             }
             Err(e) => {
