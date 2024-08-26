@@ -7,6 +7,10 @@ fn main() {
         server::start_server();
     });
 
-    // Ejecuta el cliente
+    // Ejecuta el cliente en el hilo principal
     client::run_client();
+
+    //mostrar el SeatingStructure
+
+
 }

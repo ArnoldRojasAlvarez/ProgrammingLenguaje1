@@ -18,26 +18,25 @@ pub struct Seat {
 }
 
 #[derive(Clone, Debug)]
-pub struct Row {
-    pub number: u32,
+pub struct Vip {
     pub seats: Vec<Seat>,
 }
-//cantidad de asientos libres en una fila
-impl Row {
-    pub fn free_seats(&self) -> u32 {
-        self.seats.iter().filter(|s| s.status == SeatStatus::Free).count() as u32
-    }
+
+#[derive(Clone, Debug)]
+pub struct General {
+    pub seats: Vec<Seat>,
 }
+
 
 #[derive(Clone, Debug)]
 pub struct Zone {
     pub name: String,
-    pub rows: Vec<Row>,
+    pub Vip: Vip,
+    pub General: General,
 }
 
 #[derive(Clone, Debug)]
 pub struct Category {
-    pub name: String,
     pub zones: Vec<Zone>,
 }
 
@@ -51,142 +50,322 @@ impl SeatingStructure {
         // Crear la estructura de asientos con datos más detallados y porcentajes de visión variados
         let categories = vec![
             Category {
-                name: "VIP".to_string(),
                 zones: vec![
                     Zone {
                         name: "ZonaA".to_string(),
-                        rows: (1..=5).map(|row_number| {
-                            Row {
-                                number: row_number,
-                                seats: (1..=5).map(|i| Seat {
-                                    number: i,
+                        Vip: Vip {
+                            seats: vec![
+                                Seat {
+                                    status: SeatStatus::Purchased,
+                                    vision_percentage: 100,
+                                    number: 1,
+                                },
+                                Seat {
                                     status: SeatStatus::Free,
-                                    vision_percentage : if i == 1 { 100 } else { 50 }
-                                }).collect(),
-                            }
-                        }).collect(),
+                                    vision_percentage: 100,
+                                    number: 2,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 100,
+                                    number: 3,
+                                },
+                                Seat {
+                                    status: SeatStatus::Purchased,
+                                    vision_percentage: 100,
+                                    number: 4,
+                                },
+                                Seat {
+                                    status: SeatStatus::Reserved,
+                                    vision_percentage: 100,
+                                    number: 5,
+                                },
+                            ],
+                        },
+                        General: General {
+                            seats: vec![
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 80,
+                                    number: 1,
+                                },
+                                Seat {
+                                    status: SeatStatus::Reserved,
+                                    vision_percentage: 80,
+                                    number: 2,
+                                },
+                                Seat {
+                                    status: SeatStatus::Reserved,
+                                    vision_percentage: 80,
+                                    number: 3,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 80,
+                                    number: 4,
+                                },
+                                Seat {
+                                    status: SeatStatus::Reserved,
+                                    vision_percentage: 80,
+                                    number: 5,
+                                },
+                            ],
+                        },
                     },
                     Zone {
                         name: "ZonaB".to_string(),
-                        rows: (1..=5).map(|row_number| {
-                            Row {
-                                number: row_number,
-                                seats: (1..=5).map(|i| Seat {
-                                    number: i,
+                        Vip: Vip {
+                            seats: vec![
+                                Seat {
                                     status: SeatStatus::Free,
-                                    vision_percentage: if i % 3 == 0 { 100 } else { 50 }, // Ejemplo de asignación de visión
-                                }).collect(),
-                            }
-                        }).collect(),
+                                    vision_percentage: 95,
+                                    number: 1,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 95,
+                                    number: 2,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 95,
+                                    number: 3,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 95,
+                                    number: 4,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 95,
+                                    number: 5,
+                                },
+                            ],
+                        },
+                        General: General {
+                            seats: vec![
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 75,
+                                    number: 1,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 75,
+                                    number: 2,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 75,
+                                    number: 3,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 75,
+                                    number: 4,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 75,
+                                    number: 5,
+                                },
+                            ],
+                        },
                     },
                     Zone {
                         name: "ZonaC".to_string(),
-                        rows: (1..=5).map(|row_number| {
-                            Row {
-                                number: row_number,
-                                seats: (1..=5).map(|i| Seat {
-                                    number: i,
-                                    status: SeatStatus::Reserved,
-                                    vision_percentage: if i % 4 == 0 { 100 } else { 25 }, // Ejemplo de asignación de visión
-                                }).collect(),
-                            }
-                        }).collect(),
-                    },
-                ],
-            },
-            Category {
-                name: "General".to_string(),
-                zones: vec![
-                    Zone {
-                        name: "ZonaC".to_string(),
-                        rows: (1..=5).map(|row_number| {
-                            Row {
-                                number: row_number,
-                                seats: (1..=5).map(|i| Seat {
-                                    number: i,
+                        Vip: Vip {
+                            seats: vec![
+                                Seat {
                                     status: SeatStatus::Free,
-                                    vision_percentage: if i % 4 == 0 { 100 } else { 50 }, // Ejemplo de asignación de visión
-                                }).collect(),
-                            }
-                        }).collect(),
-                    },
-                    Zone {
-                        name: "ZonaD".to_string(),
-                        rows: (1..=5).map(|row_number| {
-                            Row {
-                                number: row_number,
-                                seats: (1..=5).map(|i| Seat {
-                                    number: i,
+                                    vision_percentage: 90,
+                                    number: 1,
+                                },
+                                Seat {
                                     status: SeatStatus::Free,
-                                    vision_percentage: if i % 5 == 0 { 100 } else { 25 }, // Ejemplo de asignación de visión
-                                }).collect(),
-                            }
-                        }).collect(),
-                    },
-                    Zone {
-                        name: "ZonaE".to_string(),
-                        rows: (1..=5).map(|row_number| {
-                            Row {
-                                number: row_number,
-                                seats: (1..=5).map(|i| Seat {
-                                    number: i,
+                                    vision_percentage: 90,
+                                    number: 2,
+                                },
+                                Seat {
                                     status: SeatStatus::Free,
-                                    vision_percentage: if i % 6 == 0 { 100 } else { 75 }, // Ejemplo de asignación de visión
-                                }).collect(),
-                            }
-                        }).collect(),
+                                    vision_percentage: 90,
+                                    number: 3,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 90,
+                                    number: 4,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 90,
+                                    number: 5,
+                                },
+                            ],
+                        },
+                        General: General {
+                            seats: vec![
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 90,
+                                    number: 1,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 90,
+                                    number: 2,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 90,
+                                    number: 3,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 90,
+                                    number: 4,
+                                },
+                                Seat {
+                                    status: SeatStatus::Free,
+                                    vision_percentage: 90,
+                                    number: 5,
+                                },
+                            ],
+                        },
                     },
                 ],
             },
         ];
-
         SeatingStructure { categories }
     }
 
-    pub fn find_free_seats(&self, category_name: &str, seat_count: u32) -> Vec<String> {
-        let mut result = vec![];
-        let mut allOptions = vec![];
-        let category = self.categories.iter().find(|c| c.name == category_name);
-        if let Some(category) = category {
-            for zone in &category.zones {
-                let mut seats = vec![];
-                for row in &zone.rows {
-                    let mut free_seats = 0;
-                    let mut free_seats_str = vec![];
-                    let mut zone_name = zone.name.clone();
-                    let mut row_number = row.number.to_string();
-                    //hacer una libreria con key value para guardar los asientos
+    pub fn find_free_seats(&self, typ: &str, seat_count: u32) -> Vec<(String, u32)> {
+        // Verificar si seat_count es mayor que 5
+        if seat_count > 5 {
+            eprintln!("Error: Cannot exceed a seat count greater than 5.");
+            return vec![];
+        }
 
-                    &seats.push("Zone: ".to_string() + &zone_name);
-                    &seats.join(", ");
-                    &seats.push("Row: ".to_string() + &row_number);
-                    &seats.join(", ");
-                    for seat in &row.seats {
+        let mut best_seat_combination: Vec<(String, u32)> = Vec::new();
+        let mut best_vision_percentage = 0;
+        let mut best_distance = usize::MAX;
+
+        let categories = &self.categories;
+        let mut found_seats = false;  // Bandera para verificar si se encontraron asientos
+
+        for category in categories {
+            for zone in &category.zones {
+                let num_zone = match zone.name.as_str() {
+                    "ZonaA" => 0,
+                    "ZonaB" => 1,
+                    "ZonaC" => 2,
+                    _ => {
+                        eprintln!("Invalid zone: {}", zone.name);
+                        continue;
+                    }
+                };
+
+                let seats = match typ {
+                    "VIP" => &zone.Vip.seats,
+                    "General" => &zone.General.seats,
+                    _ => {
+                        eprintln!("Invalid category: {}", typ);
+                        return vec![];
+                    }
+                };
+
+                let mut free_seats = 0;
+                let mut vision_percentage = 0;
+                let mut distance = 0;
+                let mut seat_combination: Vec<(String, u32)> = Vec::new();
+
+                for seat in seats {
+                    if free_seats == seat_count {
+                        // Compara y guarda la mejor combinación de asientos encontrados
+                        if best_distance > distance {
+                            best_distance = distance;
+                            if best_vision_percentage < vision_percentage {
+                                best_vision_percentage = vision_percentage;
+                                best_seat_combination = seat_combination.clone();
+                            } else if best_vision_percentage == vision_percentage {
+                                if best_distance > distance {
+                                    best_seat_combination = seat_combination.clone();
+                                }
+                            }
+                        }
+                        found_seats = true;  // Asientos encontrados en la zona
+                    }
+
+                    if seat.status == SeatStatus::Free {
+                        free_seats += 1;
+                        vision_percentage += seat.vision_percentage as u32;
+                        if free_seats > 1 {
+                            distance += 1;
+                        }
+                        seat_combination.push((zone.name.clone(), seat.number));
+                    } else {
+                        if free_seats > 1 {
+                            distance += 1;
+                        }
+                    }
+                }
+
+                // Manejo de zonas adicionales si no se ha encontrado suficientes asientos
+                while free_seats < seat_count {
+                    let next_zone = (num_zone + 1) % category.zones.len();
+                    let seats = match typ {
+                        "VIP" => &category.zones[next_zone].Vip.seats,
+                        "General" => &category.zones[next_zone].General.seats,
+                        _ => {
+                            eprintln!("Invalid category: {}", typ);
+                            return vec![];
+                        }
+                    };
+
+                    for seat in seats {
+                        if free_seats == seat_count {
+                            if best_distance > distance {
+                                best_distance = distance;
+                                if best_vision_percentage < vision_percentage {
+                                    best_vision_percentage = vision_percentage;
+                                    best_seat_combination = seat_combination.clone();
+                                } else if best_vision_percentage == vision_percentage {
+                                    if best_distance > distance {
+                                        best_seat_combination = seat_combination.clone();
+                                    }
+                                }
+                            }
+                            found_seats = true;  // Asientos encontrados en la siguiente zona
+                        }
+
                         if seat.status == SeatStatus::Free {
                             free_seats += 1;
-                            free_seats_str.push(format!("Seat: {}", seat.number));
-                        }
-                        if free_seats >= seat_count {
-                            &seats.push(free_seats_str.join(", "));
-                            allOptions.push(seats.join(", "));
-                            break;
+                            vision_percentage += seat.vision_percentage as u32;
+                            if free_seats > 1 {
+                                distance += 1;
+                            }
+                            seat_combination.push((category.zones[next_zone].name.clone(), seat.number));
+                        } else {
+                            if free_seats > 1 {
+                                distance += 1;
+                            }
                         }
                     }
                 }
             }
         }
 
-        if allOptions.is_empty() {
-            allOptions.push("No free seats found".to_string());
+        // Si no se encontraron asientos, retorna un mensaje de error
+        if !found_seats {
+            eprintln!("No suitable seats found.");
+            return vec![];
         }
-        for r in &allOptions {
-            //imprimir la zona y fila de los asientos encontrados
-            println!("{}", r);
-        }
-        result
+
+        // Agregar la categoría al final de la mejor combinación
+        best_seat_combination.push((typ.to_string(), seat_count));
+        best_seat_combination
     }
-
-
 
 }
 
@@ -215,52 +394,91 @@ fn handle_client(mut stream: TcpStream, seating_structure: Arc<Mutex<SeatingStru
         match stream.read(&mut buffer) {
             Ok(size) => {
                 let request = String::from_utf8_lossy(&buffer[..size]);
-                println!("Received request: {}", request);
-                println!("{:?}", request);
-                let response = if request.starts_with("find") {
-                    let parts: Vec<&str> = request.split_whitespace().collect();
-                    if parts.len() == 3 {
-                        let category = parts[1];
-                        let seat_count = parts[2].parse::<u32>().unwrap_or(0);
-                        let mut seating_structure = seating_structure.lock().unwrap();
-                        seating_structure.find_free_seats(category, seat_count);
-                        println!("{} {}", category, seat_count);
-                        "Seats found".to_string()
+                //println!("Received request: {}", request);
+                //println!("{:?}", request);
+                let mut parts = request.split_whitespace();
+                let command = parts.next().unwrap_or("");
+                let typ = parts.next().unwrap_or("");
+                let seat_count = parts.next().unwrap_or("").parse::<u32>().unwrap_or(0);
 
-                    } else {
-                        "Invalid request. Expected: find <category> <seat_count>".to_string()
+                let response = match command {
+                    "find" => {
+                        let seating_structure = seating_structure.lock().unwrap();
+                        let seat_combination = seating_structure.find_free_seats(typ, seat_count);
+                        if seat_combination.is_empty() {
+                            "No suitable seats found.".to_string()
+                        } else {
+                            let mut response = seat_combination
+                                .iter()
+                                .map(|(zone, number)| format!("({},{})", zone, number))
+                                .collect::<Vec<String>>()
+                                .join(" ");
+                            response
+                        }
                     }
-                } else if request.starts_with("reserve") {
-                    let parts: Vec<&str> = request.split_whitespace().collect();
-                    if parts.len() == 5 {
-                        let zone = parts[1];
-                        let row = parts[2];
-                        let seat = parts[3];
-                        let seat_count = parts[4].parse::<u32>().unwrap_or(0);
-                        //cambiar el estado de los asientos a reservado
-                        for i in 0..seat_count {
-                            let mut seating_structure = seating_structure.lock().unwrap();
-                            let category = seating_structure.categories.iter_mut().find(|c| c.name == zone);
-                            if let Some(category) = category {
-                                let zone = category.zones.iter_mut().find(|z| z.name == row);
-                                if let Some(zone) = zone {
-                                    let row = zone.rows.iter_mut().find(|r| r.number == seat.parse::<u32>().unwrap_or(0));
-                                    if let Some(row) = row {
-                                        let seat = row.seats.iter_mut().find(|s| s.status == SeatStatus::Free);
-                                        if let Some(seat) = seat {
-                                            seat.status = SeatStatus::Reserved;
-                                        }
+                    "reserve" => {
+                        // reserve zona numero
+                        //buscar la zona y el numero de asiento y cambiar el estado a reservado
+                        // estructura de dato que llega del cliente: reserve VIP ZonaA 2
+                        let mut parts = request.split_whitespace();
+                        let _ = parts.next();
+                        let typ = parts.next().unwrap_or("");
+                        let zonesend = parts.next().unwrap_or("");
+                        let seat_number = parts.next().unwrap_or("").parse::<u32>().unwrap_or(0);
+                        let mut seating_structure = seating_structure.lock().unwrap();
+                        let categories = &mut seating_structure.categories;
+                        for category in categories {
+                            for zone in &mut category.zones {
+                                let seats = match typ {
+                                    "VIP" => &mut zone.Vip.seats,
+                                    "General" => &mut zone.General.seats,
+                                    _ => {
+                                        eprintln!("Invalid category: {}", typ);
+                                        return;
+                                    }
+                                };
+                                for seat in seats {
+                                    if zone.name == zonesend && seat.number == seat_number {
+                                        seat.status = SeatStatus::Reserved;
                                     }
                                 }
                             }
                         }
-                        println!("Reserving seats: {} {} {} {}", zone, row, seat, seat_count);
-                        "Seats reserved".to_string()
-                    } else {
-                        "Invalid request. Expected: reserve <zone> <row> <seat> <seat_count>".to_string()
+                        //Mandar de regreso la misma información que llego
+                        format!("purchase {} {} {}", typ, zonesend, seat_number)
+
                     }
-                } else {
-                    "Invalid request".to_string()
+                    "purchase" => {
+                        // purchase zona numero
+                        //buscar la zona y el numero de asiento y cambiar el estado a comprado
+                        // estructura de dato que llega del cliente: purchase VIP ZonaA 2
+                        let mut parts = request.split_whitespace();
+                        let _ = parts.next();
+                        let typ = parts.next().unwrap_or("");
+                        let zonesend = parts.next().unwrap_or("");
+                        let seat_number = parts.next().unwrap_or("").parse::<u32>().unwrap_or(0);
+                        let mut seating_structure = seating_structure.lock().unwrap();
+                        let categories = &mut seating_structure.categories;
+                        for category in categories {
+                            for zone in &mut category.zones {
+                                let seats = match typ {
+                                    "VIP" => &mut zone.Vip.seats,
+                                    "General" => &mut zone.General.seats,
+                                    _ => {
+                                        eprintln!("Invalid category: {}", typ);
+                                        return;
+                                    }
+                                };
+                                for seat in seats {
+                                    if zone.name == zonesend && seat.number == seat_number {
+                                        seat.status = SeatStatus::Purchased;
+                                    }
+                                }
+                            }
+                        }
+                        "Purchase completed".to_string()
+                    }
+                    _ => "Invalid command.".to_string(),
                 };
 
                 if let Err(e) = stream.write(response.as_bytes()) {
@@ -268,10 +486,7 @@ fn handle_client(mut stream: TcpStream, seating_structure: Arc<Mutex<SeatingStru
                     break;
                 }
             }
-            Err(e) => {
-                eprintln!("Failed to read from stream: {}", e);
-                break;
-            }
+            _ => {}
         }
     }
 }

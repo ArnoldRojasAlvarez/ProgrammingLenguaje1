@@ -12,3 +12,4 @@ name = "tester"
 path = "src/client/tester.rs"
 
 [dependencies]
+rand = "0.8"
