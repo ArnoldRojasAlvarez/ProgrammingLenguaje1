@@ -3,8 +3,15 @@ use std::net::{TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
+
 #[derive(Clone, PartialEq, Debug)]
 pub enum SeatStatus {
+    /**
+    Representa el estado de un asiento, que puede ser:
+    - Free: Asiento libre.
+    - Reserved: Asiento reservado.
+    - Purchased: Asiento comprado.
+    */
     Free,
     Reserved,
     Purchased,
@@ -12,6 +19,12 @@ pub enum SeatStatus {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Seat {
+    /**
+    Representa un asiento con:
+    - `status`: Estado del asiento (`SeatStatus`).
+    - `vision_percentage`: Porcentaje de visión del asiento.
+    - `number`: Número del asiento.
+    */
     pub status: SeatStatus,
     pub vision_percentage: u8,
     pub number: u32,
@@ -19,17 +32,29 @@ pub struct Seat {
 
 #[derive(Clone, Debug)]
 pub struct Vip {
+    /**
+    Estructura que representa las zona VIP, contine una lista de los asientos
+    */
     pub seats: Vec<Seat>,
 }
 
 #[derive(Clone, Debug)]
 pub struct General {
+    /**
+    Estructura que representa las zona General, contine una lista de los asientos
+    */
     pub seats: Vec<Seat>,
 }
 
 
 #[derive(Clone, Debug)]
 pub struct Zone {
+    /**
+    Representa una zona dentro de una categoría con:
+    - `name`: Nombre de la zona.
+    - `Vip`: Zona VIP.
+    - `General`: Zona General.
+    */
     pub name: String,
     pub Vip: Vip,
     pub General: General,
@@ -37,6 +62,9 @@ pub struct Zone {
 
 #[derive(Clone, Debug)]
 pub struct Category {
+    /**
+    Estructura que representa las catergorias de asientos, contiene una lista de las zonas
+    */
     pub zones: Vec<Zone>,
 }
 
@@ -46,12 +74,15 @@ pub struct SeatingStructure {
 }
 
 impl SeatingStructure {
+    // Constructor qu inicializa la estrutura de asientos
     pub fn new() -> Self {
         // Crear la estructura de asientos con datos más detallados y porcentajes de visión variados
         let categories = vec![
             Category {
                 zones: vec![
+                    //Zonas con asientos VIP y General
                     Zone {
+                        // Zona A sus asientos en VIP y General
                         name: "ZonaA".to_string(),
                         Vip: Vip {
                             seats: vec![
@@ -113,6 +144,7 @@ impl SeatingStructure {
                         },
                     },
                     Zone {
+                        // Zona B sus asientos en VIP y General
                         name: "ZonaB".to_string(),
                         Vip: Vip {
                             seats: vec![
@@ -174,6 +206,7 @@ impl SeatingStructure {
                         },
                     },
                     Zone {
+                        // Zona C sus asientos en VIP y General
                         name: "ZonaC".to_string(),
                         Vip: Vip {
                             seats: vec![
@@ -241,6 +274,17 @@ impl SeatingStructure {
     }
 
     pub fn find_free_seats(&self, typ: &str, seat_count: u32) -> Vec<(String, u32)> {
+        /**
+        Busca asientos libres en un categoria especifica.
+        Solo se permite un maxima de 5 asientos para buscar
+
+        Retorna una combinaicon de asientos pueden estar en la misma zona o en otra
+
+         Parámetros
+        - `typ`: Tipo de asiento ("VIP" o "General").
+        - `seat_count`: Cantidad de asientos requeridos.
+
+        */
         // Verificar si seat_count es mayor que 5
         if seat_count > 5 {
             eprintln!("Error: Cannot exceed a seat count greater than 5.");
@@ -370,6 +414,10 @@ impl SeatingStructure {
 }
 
 pub fn start_server() {
+    /**
+    Inicia el servidor TCP, configurando el estado inical de los
+    asientos y manejando connexiones entrantrantes
+    */
     let seating_structure = Arc::new(Mutex::new(SeatingStructure::new()));
 
     let listener = TcpListener::bind("127.0.0.1:7878").expect("Failed to bind to address");
@@ -389,6 +437,10 @@ pub fn start_server() {
 }
 
 fn handle_client(mut stream: TcpStream, seating_structure: Arc<Mutex<SeatingStructure>>) {
+    /**
+    Maneja la comunicaion con un el cliente,
+    procesando solicitudes de búsqueda, reserva y compra de los asientos
+    */
     let mut buffer = [0; 512];
     loop {
         match stream.read(&mut buffer) {

@@ -9,7 +9,16 @@ fn should_reserve() -> bool {
     rng.gen_bool(0.5)  // Genera un booleano con 50% de probabilidad
 }
 
+
 fn handle_request(stream: &mut TcpStream, request: &str) -> io::Result<String> {
+    /**
+    Maneja la solicitud enviada al servidor yb procesa la respuesta
+    Parametros:
+        stream= Conexiona ocn el servidor
+        request= Solicitud a enviar al servidor
+
+    Retorna: La respuesta del servidor
+    */
     println!("Sending request: {}", request);
     stream.write_all(request.as_bytes())?;
 
@@ -89,6 +98,9 @@ fn handle_request(stream: &mut TcpStream, request: &str) -> io::Result<String> {
 }
 
 pub fn run_client() {
+    /**
+    Simula al cliente con datos quemados, que intenta conectarse a un servidor en la direccion establecida
+    */
     loop {
         match TcpStream::connect("127.0.0.1:7878") {
             Ok(mut stream) => {
